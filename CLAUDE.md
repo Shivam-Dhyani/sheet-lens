@@ -30,5 +30,6 @@ report export). Deploy: Cloudflare Pages (`public/_headers` for CSP).
 
 ## Workflow
 - Append to `logs/YYYY-MM-DD.md` for each meaningful change (ADR-15).
+  Date the file by **IST** (Asia/Kolkata): `TZ=Asia/Kolkata date '+%Y-%m-%d'`.
 - During development the app links the engine via a workspace link; production
   uses the published `0.x`.
