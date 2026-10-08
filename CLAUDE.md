@@ -22,11 +22,19 @@ Vitest + Testing Library + Playwright + @axe-core/playwright. ExcelJS (lazy,
 report export). Deploy: Cloudflare Pages (`public/_headers` for CSP).
 
 ## Build order (TDD §17)
-- Engine (`@shivam-dhyani/sheet-diff`) — ✅ done, separate repo.
-- M4 app shell: landing (prerendered), intake + password, worker client, setup,
-  results (headline, cards, findings, detail, tabs, DiffGrid both views, mobile
-  cards), settings, templates, privacy panel, PWA.
-- M5 reports (Excel/HTML/copy summary) · M6–M7 merge UI + patch writer.
+- Engine (`@shivam-dhyani/sheet-diff`) — ✅ done (compare, merge, patch, report
+  model), separate repo. Linked here via `file:../sheet-diff` in dev.
+- M4 app shell — ✅ first pass: worker client (Comlink), landing + intake,
+  compare results (headline, cards, findings, detail, tabs, DiffGrid with
+  changed/all filter + mobile cards), privacy panel, PWA, copy-summary. Tested
+  by a Playwright US-01 e2e. Remaining: setup screen (low-confidence key),
+  password dialog, side-by-side grid view + full virtualization, settings +
+  templates (Dexie), offline/update UX polish.
+- M5 reports (ExcelJS Excel report + HTML report renderers, consuming the
+  engine's report model) · M6–M7 merge UI + patch download.
+
+Note: a single `src/styles/app.css` + tokens is used for now instead of
+per-component CSS Modules — refactor to CSS Modules is a later pass.
 
 ## Workflow
 - Append to `logs/YYYY-MM-DD.md` for each meaningful change (ADR-15).

@@ -1,0 +1,64 @@
+/* SheetLens design tokens (TDD §12.9). Colour-blind-safe blue/orange families;
+   colour is never the only signal (FR-RES-05). */
+:root {
+  --ground: #f7f7f4;
+  --surface: #ffffff;
+  --ink: #17191e;
+  --ink-soft: #4a4f57;
+  --line: #e2e2dc;
+  --accent: #0e6b66;
+  --accent-ink: #ffffff;
+
+  /* severity / state families */
+  --high-bg: #fbe0cf;
+  --high-ink: #7a2805;
+  --medium-bg: #fcebc0;
+  --medium-ink: #5c3f00;
+  --added-bg: #dce9fb;
+  --added-ink: #133a6b;
+  --removed-ink: #6b6b6b;
+  --info-bg: #ececea;
+  --info-ink: #3a3f47;
+
+  --radius: 10px;
+  --gap: 16px;
+  --touch: 44px;
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background: var(--ground);
+  line-height: 1.5;
+}
+a {
+  color: var(--accent);
+}
+button {
+  font: inherit;
+  min-height: var(--touch);
+  cursor: pointer;
+}
+.landing-fallback {
+  max-width: 720px;
+  margin: 10vh auto;
+  padding: 0 var(--gap);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
