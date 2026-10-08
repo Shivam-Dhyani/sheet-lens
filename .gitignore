@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dev-dist/
+coverage/
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.tsbuildinfo
+.eslintcache
+playwright-report/
+test-results/
