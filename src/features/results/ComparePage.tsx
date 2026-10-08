@@ -1,12 +1,17 @@
 import { useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useSession } from '../../store/session.ts';
+import { getEngine } from '../../worker/client.ts';
+import { reportFileName } from '../../reports/filename.ts';
+import { downloadBlob } from '../../reports/download.ts';
 import { DiffGrid } from './DiffGrid.tsx';
 import type { Finding, ReportChange } from '@shivam-dhyani/sheet-diff';
 
 export function ComparePage() {
-  const { summary, ui, selectFinding, setActivePair, setFilter } = useSession();
+  const { summary, slots, ui, selectFinding, setActivePair, setFilter } = useSession();
   const [copied, setCopied] = useState(false);
+  const [busy, setBusy] = useState<'xlsx' | 'html' | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const changeByFinding = useMemo(() => {
     const m = new Map<string, ReportChange>();
@@ -21,10 +26,45 @@ export function ComparePage() {
   const activePair = pairs.find((p) => p.id === ui.activePair) ?? matched[0];
   const selected = findings.find((f) => f.id === ui.selectedFindingId) ?? null;
 
+  const newName = slots.new?.fileName ?? 'new.xlsx';
+  const oldName = slots.old?.fileName ?? 'old.xlsx';
+
   const copy = async (): Promise<void> => {
     await navigator.clipboard.writeText(summary.copySummary);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  };
+
+  const downloadExcel = async (): Promise<void> => {
+    setBusy('xlsx');
+    setExportError(null);
+    try {
+      const buf = await getEngine().buildExcelReport();
+      if (!buf) throw new Error('No comparison to export.');
+      const blob = new Blob([buf], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      downloadBlob(blob, reportFileName(newName, oldName, 'xlsx'));
+    } catch (e) {
+      setExportError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const downloadHtml = async (): Promise<void> => {
+    setBusy('html');
+    setExportError(null);
+    try {
+      const html = await getEngine().buildHtmlReport();
+      if (!html) throw new Error('No comparison to export.');
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      downloadBlob(blob, reportFileName(newName, oldName, 'html'));
+    } catch (e) {
+      setExportError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(null);
+    }
   };
 
   return (
@@ -45,7 +85,28 @@ export function ComparePage() {
           <button className="btn secondary" onClick={copy}>
             {copied ? 'Copied ✓' : 'Copy summary'}
           </button>
+          <button
+            className="btn secondary"
+            onClick={downloadExcel}
+            disabled={busy !== null}
+            data-testid="download-excel"
+          >
+            {busy === 'xlsx' ? 'Preparing…' : 'Download Excel report'}
+          </button>
+          <button
+            className="btn secondary"
+            onClick={downloadHtml}
+            disabled={busy !== null}
+            data-testid="download-html"
+          >
+            {busy === 'html' ? 'Preparing…' : 'Download HTML report'}
+          </button>
         </div>
+        {exportError && (
+          <div className="contrast" role="alert" style={{ color: 'var(--danger, #7a2805)' }}>
+            {exportError}
+          </div>
+        )}
       </div>
 
       <div className="cards">

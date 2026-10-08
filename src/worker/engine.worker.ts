@@ -69,12 +69,16 @@ const api: EngineApi = {
   },
 
   async buildExcelReport() {
-    // ExcelJS rendering lands in the reports increment (M5).
-    return null;
+    if (!report) return null;
+    const { renderExcelReport } = await import('../reports/excel-report.ts');
+    const buffer = await renderExcelReport(report);
+    return Comlink.transfer(buffer, [buffer]);
   },
 
   async buildHtmlReport() {
-    return null;
+    if (!report) return null;
+    const { renderHtmlReport } = await import('../reports/html-report.ts');
+    return renderHtmlReport(report);
   },
 
   async reset() {

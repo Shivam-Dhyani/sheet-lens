@@ -24,6 +24,24 @@ test('compares the sample files and shows the headline + High findings', async (
   await expect(page.getByText('INV-1015').first()).toBeVisible();
 });
 
+// US-05: download the Excel and HTML reports (generated in the worker, saved
+// via a Blob — nothing leaves the device).
+test('downloads the Excel and HTML reports', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Try with sample files' }).click();
+  await expect(page.getByTestId('headline')).toHaveText(/8 real changes found/, { timeout: 20_000 });
+
+  const xlsx = page.waitForEvent('download');
+  await page.getByTestId('download-excel').click();
+  const xlsxDownload = await xlsx;
+  expect(xlsxDownload.suggestedFilename()).toMatch(/^SheetLens_.*_vs_.*_\d{4}-\d{2}-\d{2}\.xlsx$/);
+
+  const html = page.waitForEvent('download');
+  await page.getByTestId('download-html').click();
+  const htmlDownload = await html;
+  expect(htmlDownload.suggestedFilename()).toMatch(/^SheetLens_.*_vs_.*_\d{4}-\d{2}-\d{2}\.html$/);
+});
+
 test('privacy panel reports no external requests', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Try with sample files' }).click();

@@ -30,8 +30,10 @@ report export). Deploy: Cloudflare Pages (`public/_headers` for CSP).
   by a Playwright US-01 e2e. Remaining: setup screen (low-confidence key),
   password dialog, side-by-side grid view + full virtualization, settings +
   templates (Dexie), offline/update UX polish.
-- M5 reports (ExcelJS Excel report + HTML report renderers, consuming the
-  engine's report model) · M6–M7 merge UI + patch download.
+- M5 reports — ✅ Excel + HTML report renderers (`src/reports`), consuming the
+  engine's report model in the worker (lazy ExcelJS). Overview COUNTIFs verified
+  to recalc to the engine counts in LibreOffice; downloads covered by the e2e.
+- M6–M7 merge UI + patch download — next.
 
 Note: a single `src/styles/app.css` + tokens is used for now instead of
 per-component CSS Modules — refactor to CSS Modules is a later pass.

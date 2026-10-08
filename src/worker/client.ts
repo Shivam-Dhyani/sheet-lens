@@ -32,6 +32,14 @@ export class EngineClient {
     return this.api.getMarkedSheet(name);
   }
 
+  buildExcelReport(): Promise<ArrayBuffer | null> {
+    return this.api.buildExcelReport();
+  }
+
+  buildHtmlReport(): Promise<string | null> {
+    return this.api.buildHtmlReport();
+  }
+
   reset(): Promise<void> {
     return this.api.reset();
   }
