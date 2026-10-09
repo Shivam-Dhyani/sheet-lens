@@ -12,6 +12,7 @@ import type {
   MergeLogRow,
   BlockedOp,
   FidelityReport,
+  CompareOptions,
 } from '@shivam-dhyani/sheet-diff';
 
 export type Slot = 'old' | 'new' | 'base' | 'a' | 'b';
@@ -21,6 +22,16 @@ export interface FileMeta {
   sheetNames: string[];
   encrypted: boolean;
 }
+
+export type OpenErrorCode =
+  | 'PASSWORD_REQUIRED'
+  | 'PASSWORD_WRONG'
+  | 'ENCRYPTION_UNSUPPORTED'
+  | 'UNSUPPORTED_TYPE'
+  | 'OTHER';
+
+/** Opening a file either succeeds or reports a reason the UI can act on. */
+export type OpenResult = { ok: true; meta: FileMeta } | { ok: false; code: OpenErrorCode; message: string };
 
 export interface PairMeta {
   id: string;
@@ -70,9 +81,9 @@ export interface MergeBuildResult {
 
 /** The Comlink-exposed engine API (runs in the worker). */
 export interface EngineApi {
-  openFile(slot: Slot, buffer: ArrayBuffer, fileName: string, password?: string): Promise<FileMeta>;
+  openFile(slot: Slot, buffer: ArrayBuffer, fileName: string, password?: string): Promise<OpenResult>;
   isEncrypted(buffer: ArrayBuffer): Promise<boolean>;
-  compare(): Promise<CompareSummary>;
+  compare(options?: Partial<CompareOptions>): Promise<CompareSummary>;
   getMarkedSheet(name: string): Promise<MarkedSheet | null>;
   buildExcelReport(): Promise<ArrayBuffer | null>;
   buildHtmlReport(): Promise<string | null>;
@@ -100,4 +111,7 @@ export type {
   BlockedOp,
   FidelityReport,
   ChangeSetExtendRange,
+  CompareOptions,
+  KeyInfo,
+  ColumnMatch,
 } from '@shivam-dhyani/sheet-diff';

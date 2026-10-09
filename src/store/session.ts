@@ -1,6 +1,13 @@
 import { create } from 'zustand';
-import type { CompareSummary, Slot, FileMeta, MergePreview, MergeBuildResult } from '../worker/types.ts';
-import type { MergePlan, Resolutions, ConflictResolution } from '@shivam-dhyani/sheet-diff';
+import type {
+  CompareSummary,
+  Slot,
+  FileMeta,
+  MergePreview,
+  MergeBuildResult,
+  OpenErrorCode,
+} from '../worker/types.ts';
+import type { MergePlan, Resolutions, ConflictResolution, CompareOptions } from '@shivam-dhyani/sheet-diff';
 import { getEngine } from '../worker/client.ts';
 
 type Phase = 'idle' | 'reading' | 'comparing' | 'done' | 'error';
@@ -42,6 +49,13 @@ const freshMerge = (): MergeState => ({
   error: null,
 });
 
+interface PendingPassword {
+  slot: Slot;
+  file: File;
+  attempts: number;
+  code: OpenErrorCode;
+}
+
 interface SessionState {
   mode: 'compare' | 'merge';
   phase: Phase;
@@ -49,6 +63,7 @@ interface SessionState {
   slots: Partial<Record<Slot, SlotState>>;
   summary: CompareSummary | null;
   merge: MergeState;
+  pendingPassword: PendingPassword | null;
   ui: {
     activePair: string | null;
     filter: 'changed' | 'all';
@@ -56,8 +71,11 @@ interface SessionState {
     selectedFindingId: string | null;
   };
   setMode(mode: 'compare' | 'merge'): void;
-  openFile(slot: Slot, file: File): Promise<void>;
+  openFile(slot: Slot, file: File): Promise<boolean>;
+  submitPassword(password: string): Promise<void>;
+  cancelPassword(): void;
   runCompare(): Promise<void>;
+  recompare(keys: Record<string, string[]>): Promise<void>;
   selectFinding(id: string | null): void;
   setActivePair(id: string): void;
   setFilter(f: 'changed' | 'all'): void;
@@ -80,6 +98,7 @@ export const useSession = create<SessionState>((set, get) => ({
   slots: {},
   summary: null,
   merge: freshMerge(),
+  pendingPassword: null,
   ui: { activePair: null, filter: 'changed', view: 'unified', selectedFindingId: null },
 
   setMode: (mode) => set({ mode }),
@@ -91,21 +110,70 @@ export const useSession = create<SessionState>((set, get) => ({
       error: null,
       slots: { ...s.slots, [slot]: { fileName: file.name, size: file.size } },
     }));
-    try {
-      const meta = await getEngine().openFile(slot, buffer, file.name);
+    const res = await getEngine().openFile(slot, buffer, file.name);
+    if (res.ok) {
       set((s) => ({
         phase: 'idle',
-        slots: { ...s.slots, [slot]: { fileName: file.name, size: file.size, meta } },
+        slots: { ...s.slots, [slot]: { fileName: file.name, size: file.size, meta: res.meta } },
+      }));
+      return true;
+    }
+    if (res.code === 'PASSWORD_REQUIRED' || res.code === 'PASSWORD_WRONG' || res.code === 'ENCRYPTION_UNSUPPORTED') {
+      // Keep the File so each attempt re-reads a fresh (un-transferred) buffer.
+      set((s) => ({
+        phase: 'idle',
+        pendingPassword: { slot, file, attempts: 0, code: res.code },
+        slots: { ...s.slots, [slot]: undefined },
+      }));
+      return false;
+    }
+    set({ phase: 'error', error: res.message });
+    return false;
+  },
+
+  async submitPassword(password) {
+    const pending = get().pendingPassword;
+    if (!pending) return;
+    const { slot, file } = pending;
+    const buffer = await file.arrayBuffer();
+    const res = await getEngine().openFile(slot, buffer, file.name, password);
+    if (res.ok) {
+      set((s) => ({
+        pendingPassword: null,
+        slots: { ...s.slots, [slot]: { fileName: file.name, size: file.size, meta: res.meta } },
+      }));
+      return;
+    }
+    // Still locked: bump the attempt count (3 strikes → unprotected-copy steps).
+    set((s) => ({
+      pendingPassword: s.pendingPassword
+        ? { ...s.pendingPassword, attempts: s.pendingPassword.attempts + 1, code: res.code as OpenErrorCode }
+        : null,
+    }));
+  },
+
+  cancelPassword: () => set({ pendingPassword: null }),
+
+  async runCompare() {
+    set({ phase: 'comparing', error: null });
+    try {
+      const summary = await getEngine().compare();
+      const firstMatched = summary.pairs.find((p) => p.status === 'matched' || p.status === 'renamed');
+      set((s) => ({
+        phase: 'done',
+        summary,
+        ui: { ...s.ui, activePair: firstMatched?.id ?? summary.pairs[0]?.id ?? null },
       }));
     } catch (e) {
       set({ phase: 'error', error: messageOf(e) });
     }
   },
 
-  async runCompare() {
+  async recompare(keys) {
     set({ phase: 'comparing', error: null });
     try {
-      const summary = await getEngine().compare();
+      const options: Partial<CompareOptions> = { keys };
+      const summary = await getEngine().compare(options);
       const firstMatched = summary.pairs.find((p) => p.status === 'matched' || p.status === 'renamed');
       set((s) => ({
         phase: 'done',
@@ -222,6 +290,7 @@ export const useSession = create<SessionState>((set, get) => ({
       slots: {},
       summary: null,
       merge: freshMerge(),
+      pendingPassword: null,
       ui: { activePair: null, filter: 'changed', view: 'unified', selectedFindingId: null },
     });
   },

@@ -16,11 +16,12 @@ import {
   type CompareResult,
   type ReportModel,
   type MergePlan,
+  type CompareOptions,
 } from '@shivam-dhyani/sheet-diff';
 import type {
   EngineApi,
   Slot,
-  FileMeta,
+  OpenResult,
   CompareSummary,
   PairMeta,
   MergePlanResult,
@@ -35,30 +36,47 @@ let result: CompareResult | null = null;
 let report: ReportModel | null = null;
 let mergePlan: MergePlan | null = null;
 let mergeLabels: [string, string] = ['Copy 1', 'Copy 2'];
+let compareOpts: Partial<CompareOptions> | undefined;
 
 const api: EngineApi = {
-  async openFile(slot, buffer, fileName, password): Promise<FileMeta> {
+  async openFile(slot, buffer, fileName, password): Promise<OpenResult> {
     const bytes = new Uint8Array(buffer);
-    const wb = await readWorkbook(bytes, {
-      fileName,
-      keepSourceBytes: slot === 'base' || slot === 'old',
-      ...(password ? { password } : {}),
-    });
-    wbs[slot] = wb;
-    if (password) passwords[slot] = password;
-    else delete passwords[slot];
-    return { fileName, sheetNames: wb.sheets.map((s) => s.name), encrypted: false };
+    try {
+      const wb = await readWorkbook(bytes, {
+        fileName,
+        keepSourceBytes: slot === 'base' || slot === 'old',
+        ...(password ? { password } : {}),
+      });
+      wbs[slot] = wb;
+      if (password) passwords[slot] = password;
+      else delete passwords[slot];
+      return { ok: true, meta: { fileName, sheetNames: wb.sheets.map((s) => s.name), encrypted: Boolean(password) } };
+    } catch (e) {
+      if (isSheetDiffError(e)) {
+        const code = e.code;
+        if (
+          code === 'PASSWORD_REQUIRED' ||
+          code === 'PASSWORD_WRONG' ||
+          code === 'ENCRYPTION_UNSUPPORTED' ||
+          code === 'UNSUPPORTED_TYPE'
+        ) {
+          return { ok: false, code, message: e.message };
+        }
+      }
+      return { ok: false, code: 'OTHER', message: e instanceof Error ? e.message : String(e) };
+    }
   },
 
   async isEncrypted(buffer): Promise<boolean> {
     return isEncrypted(new Uint8Array(buffer));
   },
 
-  async compare(): Promise<CompareSummary> {
+  async compare(options): Promise<CompareSummary> {
     const oldWb = wbs.old;
     const newWb = wbs.new;
     if (!oldWb || !newWb) throw new Error('Both files must be loaded before comparing.');
-    result = compareWorkbooks(oldWb, newWb);
+    compareOpts = options ?? undefined;
+    result = compareWorkbooks(oldWb, newWb, compareOpts);
     report = buildReportModel(result, oldWb, newWb);
 
     const pairs: PairMeta[] = result.pairs.map((p) => ({
@@ -183,6 +201,7 @@ const api: EngineApi = {
     report = null;
     mergePlan = null;
     mergeLabels = ['Copy 1', 'Copy 2'];
+    compareOpts = undefined;
   },
 };
 

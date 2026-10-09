@@ -24,12 +24,13 @@ report export). Deploy: Cloudflare Pages (`public/_headers` for CSP).
 ## Build order (TDD §17)
 - Engine (`@shivam-dhyani/sheet-diff`) — ✅ done (compare, merge, patch, report
   model), separate repo. Linked here via `file:../sheet-diff` in dev.
-- M4 app shell — ✅ first pass: worker client (Comlink), landing + intake,
-  compare results (headline, cards, findings, detail, tabs, DiffGrid with
-  changed/all filter + mobile cards), privacy panel, PWA, copy-summary. Tested
-  by a Playwright US-01 e2e. Remaining: setup screen (low-confidence key),
-  password dialog, side-by-side grid view + full virtualization, settings +
-  templates (Dexie), offline/update UX polish.
+- M4 app shell — ✅ worker client (Comlink), landing + intake, compare results
+  (headline, cards, findings, detail, tabs, DiffGrid with changed/all filter +
+  mobile cards), privacy panel, copy-summary, **setup screen** (low-confidence
+  key re-pick + recompare, `src/features/setup`), **password dialog**
+  (FR-IN-04/05, `src/features/intake`), and **PWA offline/update prompts**
+  (`src/pwa`). Covered by Playwright US-01/US-02 + setup e2es. Remaining:
+  side-by-side grid view + full virtualization, settings + templates (Dexie).
 - M5 reports — ✅ Excel + HTML report renderers (`src/reports`), consuming the
   engine's report model in the worker (lazy ExcelJS). Overview COUNTIFs verified
   to recalc to the engine counts in LibreOffice; downloads covered by the e2e.
@@ -38,9 +39,8 @@ report export). Deploy: Cloudflare Pages (`public/_headers` for CSP).
   extend-totals opt-in, before/after impact preview, fidelity checklist, and the
   patched `{Original}_MERGED_{date}` download (`src/features/merge`, worker
   `planMerge`/`previewMerge`/`buildMerge`). Covered by a Playwright US-02 e2e.
-- Remaining polish: setup screen (low-confidence key), password dialog,
-  side-by-side grid + full virtualization, settings/templates (Dexie),
-  offline/update UX, CSS Modules refactor.
+- Remaining polish: side-by-side grid + full virtualization,
+  settings/templates (Dexie), CSS Modules refactor.
 
 Note: a single `src/styles/app.css` + tokens is used for now instead of
 per-component CSS Modules — refactor to CSS Modules is a later pass.

@@ -1,5 +1,7 @@
 import { Link, Outlet } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { PasswordDialog } from './features/intake/PasswordDialog.tsx';
+import { PwaPrompt } from './pwa/PwaPrompt.tsx';
 
 export function App() {
   const [online, setOnline] = useState(() => navigator.onLine);
@@ -31,6 +33,8 @@ export function App() {
       <footer className="app-footer">
         <small>SheetLens — Compare Excel files instantly, privately. Your files never leave this device.</small>
       </footer>
+      <PasswordDialog />
+      <PwaPrompt />
     </div>
   );
 }

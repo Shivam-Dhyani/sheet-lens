@@ -2,13 +2,13 @@ import * as Comlink from 'comlink';
 import type {
   EngineApi,
   Slot,
-  FileMeta,
+  OpenResult,
   CompareSummary,
   MergePlanResult,
   MergePreview,
   MergeBuildResult,
 } from './types.ts';
-import type { MarkedSheet, Resolutions } from '@shivam-dhyani/sheet-diff';
+import type { MarkedSheet, Resolutions, CompareOptions } from '@shivam-dhyani/sheet-diff';
 
 /**
  * One worker per session (ADR-02/ADR-10). The heavy workbook data lives in the
@@ -24,7 +24,7 @@ export class EngineClient {
   }
 
   /** Transfer the buffer into the worker (zero-copy). */
-  openFile(slot: Slot, buffer: ArrayBuffer, fileName: string, password?: string): Promise<FileMeta> {
+  openFile(slot: Slot, buffer: ArrayBuffer, fileName: string, password?: string): Promise<OpenResult> {
     return this.api.openFile(slot, Comlink.transfer(buffer, [buffer]), fileName, password);
   }
 
@@ -32,8 +32,8 @@ export class EngineClient {
     return this.api.isEncrypted(buffer);
   }
 
-  compare(): Promise<CompareSummary> {
-    return this.api.compare();
+  compare(options?: Partial<CompareOptions>): Promise<CompareSummary> {
+    return this.api.compare(options);
   }
 
   getMarkedSheet(name: string): Promise<MarkedSheet | null> {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSession } from '../../store/session.ts';
 import { DropZone } from '../intake/DropZone.tsx';
 import { markFilesAdded } from '../../lib/network-log.ts';
+import { needsSetup } from '../setup/key.ts';
 
 async function sampleFile(name: string): Promise<File> {
   const res = await fetch(`samples/${name}`);
@@ -24,9 +25,14 @@ export function LandingPage() {
     markFilesAdded();
     await openFile(slot, file);
   };
+  const afterCompare = (): void => {
+    const s = useSession.getState();
+    if (s.phase === 'error') return;
+    navigate(s.summary && needsSetup(s.summary) ? '/setup' : '/compare');
+  };
   const compare = async (): Promise<void> => {
     await runCompare();
-    navigate('/compare');
+    afterCompare();
   };
   const trySamples = async (): Promise<void> => {
     setBusy(true);
@@ -39,7 +45,7 @@ export function LandingPage() {
       await openFile('old', oldF);
       await openFile('new', newF);
       await runCompare();
-      navigate('/compare');
+      afterCompare();
     } finally {
       setBusy(false);
     }

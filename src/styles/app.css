@@ -566,3 +566,84 @@ table.impact td.excel {
   font-size: 0.9rem;
   color: var(--ink-soft);
 }
+
+/* ── Password dialog · PWA toast · setup (M4 polish) ───────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 25, 30, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gap);
+  z-index: 50;
+}
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(23, 25, 30, 0.25);
+}
+.modal h2 {
+  margin: 0 0 6px;
+}
+.pw-input {
+  font: inherit;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 10px 0 16px;
+  min-height: var(--touch);
+}
+.steps {
+  margin: 8px 0 16px;
+  padding-left: 20px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 28px rgba(23, 25, 30, 0.18);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: calc(100vw - 32px);
+  z-index: 40;
+}
+.toast .btn {
+  padding: 8px 14px;
+  min-height: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toast {
+    animation: toast-in 0.2s ease-out;
+  }
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+.merge-section select {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-height: var(--touch);
+}

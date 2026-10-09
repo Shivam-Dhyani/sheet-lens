@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { useSession } from '../../store/session.ts';
 import { getEngine } from '../../worker/client.ts';
 import { reportFileName } from '../../reports/filename.ts';
@@ -78,7 +78,7 @@ export function ComparePage() {
         {counts.realChanges > 0 && (
           <div className="contrast">
             A basic cell-by-cell compare would flag {overview.contrastCells} cells. · Matched by{' '}
-            {overview.matchedBy}
+            {overview.matchedBy} · <Link to="/setup">Change how rows are matched</Link>
           </div>
         )}
         <div className="actions" style={{ justifyContent: 'flex-start' }}>

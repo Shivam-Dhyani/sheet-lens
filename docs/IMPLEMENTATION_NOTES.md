@@ -35,3 +35,30 @@ behaviour differs from what the PRD/TDD assumes.
   (`default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';
   img-src data:`): no external scripts, fonts or network requests (G-3 / FR-PRV).
   All interpolated text is HTML-escaped.
+
+## Comlink error marshalling (worker boundary)
+
+Comlink serialises a thrown error to `{ message, name, stack }` only — custom
+fields such as `SheetDiffError.code` do not survive the worker boundary. So
+`openFile` and `planMerge` return a **discriminated result** (`{ ok, code }`)
+instead of throwing, which keeps the engine's error codes intact for the UI
+(password prompt vs. unsupported-encryption steps, no-key vs. .xls merge).
+
+## officecrypto-tool (decryption, spike S1)
+
+The optional `officecrypto-tool` dependency is still absent (it failed pnpm's
+build constraints — see the engine's notes). The password dialog (FR-IN-04/05)
+is fully wired to the engine's real error codes: with the module absent an
+encrypted file surfaces `ENCRYPTION_UNSUPPORTED`, so the dialog shows the
+"save an unprotected copy" steps. The decrypt happy-path (type the password →
+compare proceeds) activates once the module is installed and confirmed
+browser-viable (spike S1); no app code changes are needed for it.
+
+## vite-plugin-pwa (`virtual:pwa-register/react`)
+
+`workbox-window` is a transitive dependency of vite-plugin-pwa that pnpm's
+strict layout does not hoist, so the React register virtual module fails to
+build until it is added explicitly. It is declared as a direct devDependency
+(`workbox-window@7.4.1`, matching the plugin's `^7.3.0` range). `registerType`
+is `prompt`: the app asks before reloading to a new version rather than
+swapping the service worker mid-compare.
