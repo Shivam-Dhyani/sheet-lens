@@ -33,7 +33,14 @@ report export). Deploy: Cloudflare Pages (`public/_headers` for CSP).
 - M5 reports — ✅ Excel + HTML report renderers (`src/reports`), consuming the
   engine's report model in the worker (lazy ExcelJS). Overview COUNTIFs verified
   to recalc to the engine counts in LibreOffice; downloads covered by the e2e.
-- M6–M7 merge UI + patch download — next.
+- M6–M7 merge UI + patch download — ✅ three-file intake, conflict resolution
+  (CELL / RELATED_EDITS / DELETE_EDIT / ADD_ADD), auto-change proposals,
+  extend-totals opt-in, before/after impact preview, fidelity checklist, and the
+  patched `{Original}_MERGED_{date}` download (`src/features/merge`, worker
+  `planMerge`/`previewMerge`/`buildMerge`). Covered by a Playwright US-02 e2e.
+- Remaining polish: setup screen (low-confidence key), password dialog,
+  side-by-side grid + full virtualization, settings/templates (Dexie),
+  offline/update UX, CSS Modules refactor.
 
 Note: a single `src/styles/app.css` + tokens is used for now instead of
 per-component CSS Modules — refactor to CSS Modules is a later pass.

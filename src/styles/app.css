@@ -382,3 +382,187 @@ tr.row-removed td {
   padding: 10px 12px;
   margin-bottom: var(--gap);
 }
+
+/* ── Merge intake + page (M6–M7) ───────────────────────────── */
+.dropzones.three {
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: start;
+}
+@media (max-width: 880px) {
+  .dropzones.three {
+    grid-template-columns: 1fr;
+  }
+}
+.merge-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.copy-name {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.copy-name input {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-height: var(--touch);
+}
+.merge-section {
+  margin: var(--gap) 0;
+  padding: var(--gap);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.merge-section > h3 {
+  margin: 0 0 12px;
+}
+.proposal-group {
+  border-top: 1px solid var(--line);
+  padding: 8px 0;
+}
+.proposal-group:first-of-type {
+  border-top: 0;
+}
+.proposal-key {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+.proposal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  min-height: var(--touch);
+}
+.proposal input {
+  width: 18px;
+  height: 18px;
+}
+.source-tag {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--added-bg);
+  color: var(--added-ink);
+}
+.conflict {
+  border: 1px solid var(--high-bg);
+  border-left: 4px solid var(--high-ink);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.conflict-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.conflict-head .col {
+  color: var(--ink-soft);
+}
+.conflict-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+.conflict-values span {
+  background: var(--ground);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+.why {
+  margin: 0 0 10px;
+  color: var(--ink-soft);
+}
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--touch);
+}
+.radio.ack {
+  display: flex;
+  margin-top: 8px;
+  color: var(--high-ink);
+}
+.typed {
+  font: inherit;
+  margin-left: 6px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  min-height: var(--touch);
+}
+.ranges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.range-chip {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  background: var(--ground);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+table.impact {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+table.impact th,
+table.impact td {
+  border: 1px solid var(--line);
+  padding: 6px 10px;
+  text-align: left;
+}
+table.impact td.excel {
+  color: var(--accent);
+  font-style: italic;
+}
+.merge-section.result {
+  border-color: var(--accent);
+}
+.blocked {
+  background: var(--high-bg);
+  color: var(--high-ink);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 10px 0;
+}
+.fidelity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}

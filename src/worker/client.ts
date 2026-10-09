@@ -1,6 +1,14 @@
 import * as Comlink from 'comlink';
-import type { EngineApi, Slot, FileMeta, CompareSummary } from './types.ts';
-import type { MarkedSheet } from '@shivam-dhyani/sheet-diff';
+import type {
+  EngineApi,
+  Slot,
+  FileMeta,
+  CompareSummary,
+  MergePlanResult,
+  MergePreview,
+  MergeBuildResult,
+} from './types.ts';
+import type { MarkedSheet, Resolutions } from '@shivam-dhyani/sheet-diff';
 
 /**
  * One worker per session (ADR-02/ADR-10). The heavy workbook data lives in the
@@ -38,6 +46,22 @@ export class EngineClient {
 
   buildHtmlReport(): Promise<string | null> {
     return this.api.buildHtmlReport();
+  }
+
+  planMerge(labels: [string, string]): Promise<MergePlanResult> {
+    return this.api.planMerge(labels);
+  }
+
+  previewMerge(resolutions: Resolutions, extendTotals: boolean): Promise<MergePreview> {
+    return this.api.previewMerge(resolutions, extendTotals);
+  }
+
+  buildMerge(
+    resolutions: Resolutions,
+    extendTotals: boolean,
+    keepPassword: boolean,
+  ): Promise<MergeBuildResult> {
+    return this.api.buildMerge(resolutions, extendTotals, keepPassword);
   }
 
   reset(): Promise<void> {
