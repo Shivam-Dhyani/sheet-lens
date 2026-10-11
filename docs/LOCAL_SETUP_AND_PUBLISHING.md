@@ -308,15 +308,16 @@ npm view @shivam-dhyani/sheet-diff   # 404 = the name is free (it was on 2026-10
 `package.json` (15 files). Source, tests and fixtures are correctly left out by
 the `"files"` whitelist.
 
-**Known issues to deal with before 0.1.0** (found while writing this guide):
+**Pre-publish checklist** (found while writing this guide; ✅ = already fixed):
 
-- [ ] **README is out of date.** Line 3 says merge is coming "soon" and line 19
-      says merge/patch/report APIs "land in upcoming releases" — they are all in
-      0.1.0. The README is the first thing people see on npm.
-- [ ] **CLI contrast number disagrees with the app.** For the sample files the
-      CLI prints *"a basic compare would flag 92 cells"*; the app and the PRD say
-      **89**. The CLI (`bin/cli.ts`, ~line 214) sums every sheet; the report
-      model counts only the primary data sheet. Make the CLI use the same rule.
+- [x] ✅ **README out of date** — fixed. The tagline and "pre-1.0" bullet no longer
+      say merge is coming "soon", and the API table now lists the merge, patch and
+      report functions. Its CLI merge example used a name the CLI silently ignores
+      (`=Ravi`); it now uses `Copy1`/`Copy2`/`delete`, which is what the CLI accepts.
+- [x] ✅ **CLI contrast number disagreed with the app** — fixed. The CLI printed
+      92 (all sheets summed) where the app and PRD say **89** (primary data sheet).
+      Both now call one shared `contrastCells()` helper, with a regression test that
+      runs the real CLI.
 - [ ] **`npm audit` reports 2 high-severity issues for anyone who installs the
       package** (I ran it on a clean install of the tarball). Both are in `xlsx`
       (SheetJS CE 0.18.5): *Prototype Pollution* (GHSA-4r6h-8v6p-xvw6) and a *ReDoS*
