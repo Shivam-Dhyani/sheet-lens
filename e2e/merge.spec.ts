@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 
 // US-02: drop Original + Ravi + Priya → 5 auto-changes and 3 conflicts
@@ -38,6 +39,44 @@ test('plans, resolves conflicts, previews impact, and downloads the merged file'
 
   // result panel: 8 changes applied (5 auto + 3 resolved)
   await expect(page.getByTestId('merge-result')).toContainText('8 change(s) applied', { timeout: 15_000 });
+});
+
+// The merged file has no calculated results saved (Excel recalculates it on open). Re-opening it
+// in SheetLens must still see every formula - this used to read as a sheet with the formulas gone.
+test('a merged file re-opens with its formulas intact and compares sensibly with its Original', async ({
+  page,
+}) => {
+  // 1. Merge the sample files and keep the download.
+  await page.goto('/');
+  await page.getByRole('tab', { name: 'Merge two edited copies' }).click();
+  await page.getByRole('button', { name: 'Try with sample files' }).click();
+  await expect(page.getByTestId('merge-headline')).toContainText('3 of 3 conflicts', { timeout: 20_000 });
+  await page.locator('.conflict', { hasText: 'INV-1003' }).getByLabel('Ravi', { exact: true }).check();
+  await page.locator('.conflict', { hasText: 'INV-1008' }).getByLabel(/Ravi.s edits/).check();
+  await page.locator('.conflict', { hasText: 'INV-1019' }).getByLabel('Delete the row').check();
+  await expect(page.getByTestId('merge-headline')).toContainText('all conflicts resolved');
+  const dl = page.waitForEvent('download');
+  await page.getByTestId('download-merge').click();
+  const merged = await (await dl).path();
+
+  // 2. Compare the Original (old) with the merged file (new).
+  const original = await page.request.get('/samples/Sales_Register_Sep2026_ORIGINAL.xlsx');
+  const xlsx = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  await page.goto('/');
+  const inputs = page.locator('input[type=file]'); // Old file, New file
+  await inputs.nth(0).setInputFiles({ name: 'Original.xlsx', mimeType: xlsx, buffer: await original.body() });
+  // (Playwright saves downloads under an extension-less temp name, which the app's file guard rejects.)
+  await inputs.nth(1).setInputFiles({ name: 'Merged.xlsx', mimeType: xlsx, buffer: readFileSync(merged!) });
+  await page.getByRole('button', { name: 'Compare', exact: true }).click();
+  await expect(page.getByTestId('headline')).toContainText('real changes found', { timeout: 20_000 });
+
+  // No formula was lost or overwritten...
+  await expect(page.locator('.card', { hasText: 'Formulas overwritten' })).toContainText('0');
+  // ...the four totals the merge widened are reported by their formulas, not as "-> (blank)"...
+  await expect(page.getByText(/→ =COUNTA\(/).first()).toBeVisible();
+  await expect(page.getByText(/\(blank\)/)).toHaveCount(0);
+  // ...and the genuine merge edits are there with their values.
+  await expect(page.getByText('Qty for INV-1003: 25 → 30.')).toBeVisible();
 });
 
 // BR-M9: without a key column, merge is unavailable and the reason is explained.

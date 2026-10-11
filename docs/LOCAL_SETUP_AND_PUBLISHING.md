@@ -322,11 +322,15 @@ the `"files"` whitelist.
       key used to be planned as a conflict but never written, whatever the user chose. The
       engine, CLI (`KEY=Copy1|Copy2|both:NEWKEY`) and merge screen now keep either copy's row,
       or both under different keys.
-- [ ] **The reader skips formula cells that have no cached value** (SheetJS drops them unless
-      `sheetStubs` is on). Excel always saves cached values, but the merged files SheetLens
-      writes (Excel recalculates them on open), and files from tools like openpyxl, do not —
-      so re-opening those in SheetLens shows the formulas as empty. Worth fixing or documenting
-      before users start comparing merged output against its Original.
+- [x] ✅ **The reader dropped formulas that have no saved result** — fixed. Files from
+      openpyxl-style tools, and the merged files SheetLens writes (Excel recalculates them on
+      open), came back with every formula missing. The reader now keeps them, enabling the
+      slower SheetJS "stubs" mode only for files that actually contain such a cell (about 10 %
+      extra read time on a deliberately heavy file for everyone else; see the engine's
+      `docs/IMPLEMENTATION_NOTES.md`).
+- [ ] **Comparing a merged file with its Original raises a High finding for the deleted row**,
+      because that invoice number appears as text in the new "SheetLens Merge Log" sheet.
+      Cosmetic for this flow, but users will see it.
 - [ ] **`npm audit` reports 2 high-severity issues for anyone who installs the
       package** (I ran it on a clean install of the tarball). Both are in `xlsx`
       (SheetJS CE 0.18.5): *Prototype Pollution* (GHSA-4r6h-8v6p-xvw6) and a *ReDoS*
