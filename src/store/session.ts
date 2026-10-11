@@ -296,6 +296,9 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 }));
 
+/** Only the newest preview request may update the screen (typing fires one per keystroke). */
+let previewSeq = 0;
+
 /** Recompute the impact preview from the current resolutions (no-op until planned). */
 async function refreshPreview(
   set: (fn: (s: SessionState) => Partial<SessionState>) => void,
@@ -303,9 +306,10 @@ async function refreshPreview(
 ): Promise<void> {
   if (!get().merge.plan) return;
   const { resolutions, extendTotals } = get().merge;
+  const seq = ++previewSeq;
   try {
     const preview = await getEngine().previewMerge(resolutions, extendTotals);
-    set((s) => ({ merge: { ...s.merge, preview } }));
+    if (seq === previewSeq) set((s) => ({ merge: { ...s.merge, preview } }));
   } catch {
     // A transient resolve error (e.g. mid-edit) just leaves the last preview.
   }

@@ -154,15 +154,38 @@ const api: EngineApi = {
     const unresolved = mergePlan.conflicts
       .filter((c) => resolutions.conflicts[c.id] === undefined)
       .map((c) => c.id);
-    if (unresolved.length > 0) {
-      return { resolved: false, unresolved, appliedCount: 0, impact: [], extendRanges: [] };
+
+    // Check the answers given so far on their own, so a bad one (say a row key that is
+    // already taken) is reported straight away, not only once every conflict is answered.
+    const answeredOnly = {
+      ...mergePlan,
+      conflicts: mergePlan.conflicts.filter((c) => resolutions.conflicts[c.id] !== undefined),
+    };
+    let changeSet;
+    try {
+      changeSet = resolveMerge(base, answeredOnly, resolutions, { extendTotals });
+    } catch (e) {
+      if (isSheetDiffError(e) && e.code === 'MERGE_INVALID_RESOLUTION') {
+        const conflict = String(e.data['conflict'] ?? '');
+        return {
+          resolved: false,
+          unresolved,
+          problems: [{ conflict, message: e.message }],
+          appliedCount: 0,
+          impact: [],
+          extendRanges: [],
+        };
+      }
+      throw e;
     }
-    const changeSet = resolveMerge(base, mergePlan, resolutions, { extendTotals });
+    if (unresolved.length > 0) {
+      return { resolved: false, unresolved, problems: [], appliedCount: 0, impact: [], extendRanges: [] };
+    }
     const extendRanges = extendTotals ? changeSet.extendRanges : computeExtendRanges(base, changeSet);
     const impact = previewImpact(base, changeSet);
     const appliedCount =
       changeSet.cellEdits.length + changeSet.rowInserts.length + changeSet.rowDeletes.length;
-    return { resolved: true, unresolved: [], appliedCount, impact, extendRanges };
+    return { resolved: true, unresolved: [], problems: [], appliedCount, impact, extendRanges };
   },
 
   async buildMerge(resolutions, extendTotals, keepPassword): Promise<MergeBuildResult> {

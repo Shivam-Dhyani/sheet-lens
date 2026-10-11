@@ -35,10 +35,12 @@ report export). Deploy: Cloudflare Pages (`public/_headers` for CSP).
   engine's report model in the worker (lazy ExcelJS). Overview COUNTIFs verified
   to recalc to the engine counts in LibreOffice; downloads covered by the e2e.
 - M6–M7 merge UI + patch download — ✅ three-file intake, conflict resolution
-  (CELL / RELATED_EDITS / DELETE_EDIT / ADD_ADD), auto-change proposals,
+  (CELL / RELATED_EDITS / DELETE_EDIT / ADD_ADD — keep either copy's row, or keep
+  both under different keys with the two rows shown side by side), auto-change proposals,
   extend-totals opt-in, before/after impact preview, fidelity checklist, and the
   patched `{Original}_MERGED_{date}` download (`src/features/merge`, worker
-  `planMerge`/`previewMerge`/`buildMerge`). Covered by a Playwright US-02 e2e.
+  `planMerge`/`previewMerge`/`buildMerge`). Covered by Playwright US-02 e2es
+  (fixture merge + a generated ADD_ADD scenario).
 - Remaining polish: side-by-side grid + full virtualization,
   settings/templates (Dexie), CSS Modules refactor.
 

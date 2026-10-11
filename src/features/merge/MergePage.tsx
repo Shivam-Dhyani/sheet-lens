@@ -3,10 +3,12 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useSession } from '../../store/session.ts';
 import { downloadBlob } from '../../reports/download.ts';
 import { formatValue } from '../../lib/format.ts';
+import { compareRows, defaultKeepBoth } from './addAdd.ts';
 import type {
   Conflict,
   Proposal,
   ConflictResolution,
+  KeepBothResolution,
   MergeSource,
   Scalar,
 } from '@shivam-dhyani/sheet-diff';
@@ -58,7 +60,8 @@ export function MergePage() {
   const needsAck = conflicts.some(
     (c) => merge.resolutions.conflicts[c.id] === 'both' && !merge.resolutions.acknowledgeRelated?.[c.id],
   );
-  const allResolved = resolvedCount === conflicts.length && !needsAck;
+  const problems = merge.preview?.problems ?? [];
+  const allResolved = resolvedCount === conflicts.length && !needsAck && problems.length === 0;
   const unticked = new Set(merge.resolutions.untickedProposals ?? []);
 
   // Proposals grouped by row key (FR-MRG-02).
@@ -110,6 +113,7 @@ export function MergePage() {
               c={c}
               labels={merge.labels}
               resolution={merge.resolutions.conflicts[c.id]}
+              problem={problems.find((p) => p.conflict === c.id)?.message}
               acknowledged={Boolean(merge.resolutions.acknowledgeRelated?.[c.id])}
               onResolve={(r) => resolveConflict(c.id, r)}
               onAck={(a) => acknowledgeRelated(c.id, a)}
@@ -264,6 +268,7 @@ function ConflictCard({
   c,
   labels,
   resolution,
+  problem,
   acknowledged,
   onResolve,
   onAck,
@@ -271,6 +276,8 @@ function ConflictCard({
   c: Conflict;
   labels: [string, string];
   resolution: ConflictResolution | undefined;
+  /** Why the engine refused the current answer, if it did. */
+  problem?: string | undefined;
   acknowledged: boolean;
   onResolve(r: ConflictResolution): void;
   onAck(a: boolean): void;
@@ -366,13 +373,76 @@ function ConflictCard({
 
       {c.type === 'ADD_ADD' && (
         <>
-          <p className="why">Both copies added a row with key {c.key}.</p>
+          <p className="why">
+            {labels[0]} and {labels[1]} both added a row with key {c.key}, with different contents.
+          </p>
+          <table className="row-compare">
+            <caption className="visually-hidden">What each copy added</caption>
+            <thead>
+              <tr>
+                <th scope="col">Field</th>
+                <th scope="col">{labels[0]}</th>
+                <th scope="col">{labels[1]}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {compareRows(c.aCells ?? [], c.bCells ?? []).map((r) => (
+                <tr key={r.column} className={r.differs ? 'differs' : undefined}>
+                  <th scope="row">
+                    {r.column}
+                    {r.differs && <span className="diff-mark" title="The copies differ here"> ≠</span>}
+                  </th>
+                  <td>{r.a}</td>
+                  <td>{r.b}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
           <div className="choices">
             <Radio name={name} checked={is('A')} onChange={() => onResolve('A')} label={`${labels[0]}’s row`} />
             <Radio name={name} checked={is('B')} onChange={() => onResolve('B')} label={`${labels[1]}’s row`} />
-            <Radio name={name} checked={is('both')} onChange={() => onResolve('both')} label="Keep both" />
+            <Radio
+              name={name}
+              checked={isKeepBoth(resolution)}
+              onChange={() => onResolve(defaultKeepBoth(c.key ?? ''))}
+              label="Keep both rows"
+            />
           </div>
+          {isKeepBoth(resolution) && (
+            <div className="key-inputs">
+              <label>
+                Key for {labels[0]}’s row
+                <input
+                  type="text"
+                  value={resolution.keepBoth.aKey}
+                  onChange={(e) => onResolve({ keepBoth: { ...resolution.keepBoth, aKey: e.target.value } })}
+                  aria-invalid={Boolean(problem)}
+                />
+              </label>
+              <label>
+                Key for {labels[1]}’s row
+                <input
+                  type="text"
+                  value={resolution.keepBoth.bKey}
+                  onChange={(e) => onResolve({ keepBoth: { ...resolution.keepBoth, bKey: e.target.value } })}
+                  aria-invalid={Boolean(problem)}
+                />
+              </label>
+              {(c.keyColumns?.length ?? 0) > 1 && (
+                <p className="hint">
+                  This sheet’s key has {c.keyColumns!.length} parts ({c.keyColumns!.join(' / ')}); type them
+                  separated by “ / ”.
+                </p>
+              )}
+            </div>
+          )}
         </>
+      )}
+
+      {problem && (
+        <p className="field-error" role="alert">
+          {problem}
+        </p>
       )}
     </div>
   );
@@ -399,6 +469,10 @@ function Radio({
       {label}
     </label>
   );
+}
+
+function isKeepBoth(r: ConflictResolution | undefined): r is KeepBothResolution {
+  return typeof r === 'object' && r !== null && 'keepBoth' in r;
 }
 
 /** A typed value: number when it parses cleanly, else the raw string. */

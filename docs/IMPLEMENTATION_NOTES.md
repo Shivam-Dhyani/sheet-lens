@@ -36,6 +36,14 @@ behaviour differs from what the PRD/TDD assumes.
   img-src data:`): no external scripts, fonts or network requests (G-3 / FR-PRV).
   All interpolated text is HTML-escaped.
 
+## Playwright specs that need ExcelJS (`e2e/add-add.spec.ts`)
+
+The shipped merge fixtures contain no ADD_ADD conflict, so that spec builds its three
+workbooks (and reads the downloaded result) with ExcelJS. Playwright's ESM test loader
+fails to link ExcelJS's CommonJS dependency tree through a normal `import`
+("request for './index.js' is from a module not been linked"); loading it with
+`createRequire(import.meta.url)('exceljs')` works. Types still come from `import type`.
+
 ## Comlink error marshalling (worker boundary)
 
 Comlink serialises a thrown error to `{ message, name, stack }` only — custom

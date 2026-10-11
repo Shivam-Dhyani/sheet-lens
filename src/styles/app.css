@@ -647,3 +647,78 @@ table.impact td.excel {
   border-radius: 8px;
   min-height: var(--touch);
 }
+
+/* ── ADD_ADD: the two added rows side by side, and the keep-both key fields ── */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+table.row-compare {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+}
+table.row-compare th,
+table.row-compare td {
+  border: 1px solid var(--line);
+  padding: 5px 10px;
+  text-align: left;
+}
+table.row-compare tbody th {
+  font-weight: 500;
+  color: var(--ink-soft);
+  width: 28%;
+}
+table.row-compare tr.differs td {
+  background: var(--medium-bg);
+  color: var(--medium-ink);
+}
+.diff-mark {
+  font-weight: 700;
+}
+.key-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 10px;
+}
+.key-inputs label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.key-inputs input {
+  font: inherit;
+  min-height: var(--touch);
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.key-inputs input[aria-invalid='true'] {
+  border-color: var(--high-ink);
+  outline: 1px solid var(--high-ink);
+}
+.key-inputs .hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.field-error {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--high-bg);
+  color: var(--high-ink);
+  font-weight: 500;
+}
+.field-error::before {
+  content: '⚠ ';
+}

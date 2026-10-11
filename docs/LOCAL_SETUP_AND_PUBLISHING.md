@@ -318,6 +318,15 @@ the `"files"` whitelist.
       92 (all sheets summed) where the app and PRD say **89** (primary data sheet).
       Both now call one shared `contrastCells()` helper, with a regression test that
       runs the real CLI.
+- [x] ✅ **`ADD_ADD` merge conflicts did nothing** — fixed. Both copies adding the same
+      key used to be planned as a conflict but never written, whatever the user chose. The
+      engine, CLI (`KEY=Copy1|Copy2|both:NEWKEY`) and merge screen now keep either copy's row,
+      or both under different keys.
+- [ ] **The reader skips formula cells that have no cached value** (SheetJS drops them unless
+      `sheetStubs` is on). Excel always saves cached values, but the merged files SheetLens
+      writes (Excel recalculates them on open), and files from tools like openpyxl, do not —
+      so re-opening those in SheetLens shows the formulas as empty. Worth fixing or documenting
+      before users start comparing merged output against its Original.
 - [ ] **`npm audit` reports 2 high-severity issues for anyone who installs the
       package** (I ran it on a clean install of the tarball). Both are in `xlsx`
       (SheetJS CE 0.18.5): *Prototype Pollution* (GHSA-4r6h-8v6p-xvw6) and a *ReDoS*

@@ -61,10 +61,18 @@ export type MergePlanResult =
   | { ok: true; plan: MergePlan; canPatch: boolean; encrypted: boolean }
   | { ok: false; code: 'MERGE_NO_KEY' | 'MERGE_XLS'; message: string };
 
+/** An answer the engine refused (e.g. a new row key that is already taken). */
+export interface MergeProblem {
+  conflict: string;
+  message: string;
+}
+
 /** Impact preview + the exact total-formulas the extend-totals toggle changes. */
 export interface MergePreview {
+  /** Every conflict answered, and every answer valid. */
   resolved: boolean;
   unresolved: string[];
+  problems: MergeProblem[];
   appliedCount: number;
   impact: ImpactRow[];
   extendRanges: ChangeSetExtendRange[];
@@ -111,6 +119,7 @@ export type {
   BlockedOp,
   FidelityReport,
   ChangeSetExtendRange,
+  KeepBothResolution,
   CompareOptions,
   KeyInfo,
   ColumnMatch,
